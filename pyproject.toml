@@ -16,5 +16,22 @@ dependencies = [
   "soundfile>=0.12.1",
 ]
 
+[project.urls]
+Repository = "https://github.com/naivestud/roomkit"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/roomkit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
