@@ -27,5 +27,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install pytest
-      - run: pytest
+      - run: pip install pytest pytest-cov
+      - run: pytest --cov=roomkit --cov-report=term-missing
