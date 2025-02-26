@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from roomkit.audio.framing import frame_signal
+from roomkit.audio.framing import frame_signal, overlap_add
 from roomkit.signal.windows import get_window
 
 
@@ -31,3 +31,36 @@ def stft(
     win = get_window(window, n_fft)
     frames = frame_signal(samples, n_fft, hop_length)
     return np.fft.rfft(frames * win, n=n_fft, axis=-1)
+
+
+def istft(
+    frames: np.ndarray,
+    hop_length: int = 160,
+    window: str = "hann",
+    length: int | None = None,
+) -> np.ndarray:
+    """Invert an STFT produced by :func:`stft` with overlap-add.
+
+    The same window is used for analysis and synthesis; the output is
+    normalised by the accumulated squared window, so reconstruction is exact
+    in the interior of the signal for any window.
+
+    Args:
+        frames: Complex array of shape ``(num_frames, n_fft // 2 + 1)``.
+        hop_length: Hop used during analysis.
+        window: Window used during analysis.
+        length: If given, trim or zero-pad the output to this many samples.
+
+    Returns:
+        Reconstructed time-domain signal.
+    """
+    n_fft = (frames.shape[-1] - 1) * 2
+    win = get_window(window, n_fft)
+    time_frames = np.fft.irfft(frames, n=n_fft, axis=-1)
+    out = overlap_add(time_frames, hop_length, window=win)
+    if length is not None:
+        if out.shape[0] >= length:
+            out = out[:length]
+        else:
+            out = np.pad(out, (0, length - out.shape[0]))
+    return out
