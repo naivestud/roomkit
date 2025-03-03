@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 
 from roomkit.config import AudioConfig
@@ -18,7 +20,7 @@ def test_durations():
 
 def test_frozen():
     config = AudioConfig()
-    with pytest.raises(Exception):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         config.sample_rate = 8000  # type: ignore[misc]
 
 
