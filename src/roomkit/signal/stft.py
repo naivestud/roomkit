@@ -59,8 +59,6 @@ def istft(
     time_frames = np.fft.irfft(frames, n=n_fft, axis=-1)
     out = overlap_add(time_frames, hop_length, window=win)
     if length is not None:
-        if out.shape[0] >= length:
-            out = out[:length]
-        else:
-            out = np.pad(out, (0, length - out.shape[0]))
+        pad = max(length - out.shape[0], 0)
+        out = out[:length] if pad == 0 else np.pad(out, (0, pad))
     return out
