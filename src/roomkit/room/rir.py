@@ -91,7 +91,9 @@ def simulate_rir(
     delays = []
     amplitudes = []
     orders = range(-max_order, max_order + 1)
-    for n, mirrored in itertools.product(orders, itertools.product((0, 1), repeat=3)):
+    cells = itertools.product(orders, repeat=3)
+    mirror_options = itertools.product((0, 1), repeat=3)
+    for n, mirrored in itertools.product(cells, mirror_options):
         order = _reflection_order(n, mirrored)
         if order > max_order:
             continue
