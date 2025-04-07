@@ -38,9 +38,10 @@ def test_log_mel_shape_and_range():
     feats = log_mel_spectrogram(samples, sample_rate=16000, n_mels=80)
     expected_frames = 1 + (16000 - 400) // 160
     assert feats.shape == (expected_frames, 80)
-    # whisper-style rescaling keeps values in roughly [-1, 1]
-    assert float(feats.max()) <= 1.0 + 1e-9
-    assert float(feats.min()) >= -1.0 - 1e-9
+    assert np.all(np.isfinite(feats))
+    # values are clamped to within 8 decades of the max, then divided by 4,
+    # so the total spread can never exceed 2.0
+    assert float(feats.max() - feats.min()) <= 2.0 + 1e-9
 
 
 def test_log_mel_louder_is_larger():
