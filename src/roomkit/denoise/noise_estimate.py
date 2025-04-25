@@ -13,9 +13,9 @@ def estimate_noise(
     """Estimate the noise power spectrum with a windowed minimum tracker.
 
     The power of each frame is estimated as the minimum power seen in the
-    ``window`` frames up to and including it, which tracks stationary noise
-    while speech energy rises above it. The first frames are seeded with the
-    mean of the first ``initial_frames`` frames (assumed noise-only).
+    ``window`` frames up to and including it, capped by the average of the
+    first ``initial_frames`` frames (assumed noise-only). The cap keeps
+    continuous speech from contaminating the noise floor.
 
     This is minimum statistics without bias compensation: the estimate is
     slightly low on average, which is a useful bias for denoising.
@@ -40,7 +40,8 @@ def estimate_noise(
     for t in range(num_frames):
         lo = max(0, t + 1 - window)
         noise[t] = power[lo : t + 1].min(axis=0)
-    # short windows at the start are biased high; clamp them to the seed
-    blend = min(initial_frames, num_frames)
-    noise[:blend] = np.minimum(noise[:blend], seed)
+    # Cap at the lead-in level: the tracker may dip below it inside speech
+    # pauses but must never rise above the opening noise-only estimate,
+    # otherwise continuous speech contaminates the noise floor.
+    noise = np.minimum(noise, seed)
     return noise
