@@ -10,7 +10,9 @@ def _si_sdr(target: np.ndarray, estimate: np.ndarray) -> float:
     alpha = np.dot(estimate, target) / np.dot(target, target)
     projection = alpha * target
     residual = estimate - projection
-    return float(10 * np.log10(np.dot(projection, projection) / (np.dot(residual, residual) + 1e-12)))
+    signal_energy = float(np.dot(projection, projection))
+    noise_energy = float(np.dot(residual, residual))
+    return 10 * np.log10(signal_energy / (noise_energy + 1e-12))
 
 
 def _noisy_signal(seed: int = 3):
