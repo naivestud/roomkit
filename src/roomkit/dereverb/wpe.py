@@ -31,6 +31,25 @@ def _estimate_power(spectrum: np.ndarray, context: int = 0) -> np.ndarray:
     return power
 
 
+def _stable_solve(
+    correlation: np.ndarray, cross: np.ndarray, regularization: float
+) -> np.ndarray:
+    """Solve the per-bin normal equations, falling back on singular bins.
+
+    Diagonal loading handles most ill-conditioned bins; bins that are still
+    singular (e.g. silent frequency regions) are solved with least squares.
+    """
+    size = correlation.shape[-1]
+    loaded = correlation + regularization * np.eye(size)[None, :, :]
+    try:
+        return np.linalg.solve(loaded, cross)
+    except np.linalg.LinAlgError:
+        solution = np.empty_like(cross)
+        for f in range(correlation.shape[0]):
+            solution[f] = np.linalg.lstsq(loaded[f], cross[f], rcond=None)[0]
+        return solution
+
+
 def _estimate_filter(
     spectrum: np.ndarray,
     power: np.ndarray,
@@ -67,8 +86,7 @@ def _estimate_filter(
     cross = np.einsum(
         "fkt,ft,fdt->fkd", y_tilde.conj(), inv_power, spectrum, optimize="optimal"
     )
-    correlation += regularization * np.eye(taps * channels)[None, :, :]
-    return np.linalg.solve(correlation, cross)
+    return _stable_solve(correlation, cross, regularization)
 
 
 def wpe(
