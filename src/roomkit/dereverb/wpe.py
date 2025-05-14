@@ -11,6 +11,19 @@ from __future__ import annotations
 import numpy as np
 
 
+def _build_y_tilde(spectrum: np.ndarray, taps: int, delay: int) -> np.ndarray:
+    """Stack delayed copies of the spectrum into the prediction regressor.
+
+    Returns an array of shape ``(freqs, taps * channels, frames)`` where the
+    entry for tap ``k`` is the spectrum delayed by ``delay + k`` frames;
+    samples before the start of the signal are zero.
+    """
+    freqs, channels, frames = spectrum.shape
+    padded = np.pad(spectrum, ((0, 0), (0, 0), (delay + taps - 1, 0)))
+    blocks = [padded[:, :, taps - 1 - k : taps - 1 - k + frames] for k in range(taps)]
+    return np.stack(blocks, axis=2).reshape(freqs, taps * channels, frames)
+
+
 def _estimate_power(spectrum: np.ndarray, context: int = 0) -> np.ndarray:
     """Smoothed power spectral density of the current source estimate.
 
@@ -76,9 +89,7 @@ def _estimate_filter(
     freqs, channels, frames = spectrum.shape
     inv_power = 1.0 / np.maximum(power, 1e-10)
 
-    padded = np.pad(spectrum, ((0, 0), (0, 0), (delay + taps - 1, 0)))
-    blocks = [padded[:, :, taps - 1 - k : taps - 1 - k + frames] for k in range(taps)]
-    y_tilde = np.stack(blocks, axis=2).reshape(freqs, taps * channels, frames)
+    y_tilde = _build_y_tilde(spectrum, taps, delay)
 
     correlation = np.einsum(
         "fkt,ft,flt->fkl", y_tilde.conj(), inv_power, y_tilde, optimize="optimal"
@@ -124,12 +135,7 @@ def wpe(
         prediction_filter = _estimate_filter(
             spectrum, power, taps, delay, regularization
         )
-        freqs, channels, frames = spectrum.shape
-        padded = np.pad(spectrum, ((0, 0), (0, 0), (delay + taps - 1, 0)))
-        blocks = [
-            padded[:, :, taps - 1 - k : taps - 1 - k + frames] for k in range(taps)
-        ]
-        y_tilde = np.stack(blocks, axis=2).reshape(freqs, taps * channels, frames)
+        y_tilde = _build_y_tilde(spectrum, taps, delay)
         enhanced = spectrum - np.einsum(
             "fkd,fkt->fdt", prediction_filter, y_tilde, optimize="optimal"
         )
