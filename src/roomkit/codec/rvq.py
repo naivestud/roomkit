@@ -72,4 +72,7 @@ def rvq_decode(tokens: np.ndarray, codebooks: list[np.ndarray]) -> np.ndarray:
         raise ValueError(f"expected 2-D tokens, got shape {tokens.shape}")
     if tokens.shape[1] != len(codebooks):
         raise ValueError("token width does not match the number of codebooks")
-    return sum(codebooks[tokens[:, stage]] for stage in range(len(codebooks)))
+    reconstruction = np.zeros((tokens.shape[0], codebooks[0].shape[1]))
+    for stage, codebook in enumerate(codebooks):
+        reconstruction += codebook[tokens[:, stage]]
+    return reconstruction
