@@ -58,7 +58,7 @@ class CodecFrontend:
             n_mels=self.n_mels,
         )
 
-    def fit(self, samples: np.ndarray, iterations: int = 25, seed: int = 0) -> "CodecFrontend":
+    def fit(self, samples: np.ndarray, iterations: int = 25, seed: int = 0) -> CodecFrontend:
         """Train the codebooks on the analysis features of ``samples``."""
         features = self._features(np.asarray(samples, dtype=np.float64))
         self._codebooks = fit_rvq(

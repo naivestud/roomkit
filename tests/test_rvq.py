@@ -19,7 +19,9 @@ def test_residual_error_decreases_per_stage():
         tokens = rvq_encode(data, codebooks[:depth])
         reconstruction = rvq_decode(tokens, codebooks[:depth])
         errors.append(float(np.mean((data - reconstruction) ** 2)))
-    assert all(later < earlier for earlier, later in zip(errors, errors[1:]))
+    assert all(
+        later < earlier for earlier, later in zip(errors, errors[1:], strict=False)
+    )
 
 
 def test_token_shapes_and_ranges():
