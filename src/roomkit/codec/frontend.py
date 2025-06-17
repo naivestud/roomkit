@@ -6,6 +6,8 @@ import numpy as np
 
 from roomkit.codec.features import codec_features
 from roomkit.codec.rvq import fit_rvq, rvq_decode, rvq_encode
+from roomkit.signal.griffinlim import griffin_lim
+from roomkit.signal.mel import mel_filterbank
 
 
 class CodecFrontend:
@@ -91,3 +93,32 @@ class CodecFrontend:
             raise RuntimeError("call fit() before decode()")
         assert self._codebooks is not None  # for type checkers
         return rvq_decode(tokens, self._codebooks)
+
+    def synthesize(self, tokens: np.ndarray, n_iter: int = 32, seed: int = 0) -> np.ndarray:
+        """Reconstruct a waveform from tokens.
+
+        The decoded log-mel frames are mapped back to a linear magnitude via
+        the (pseudo-inverted) mel filterbank and Griffin-Lim recovers a
+        consistent phase. Quality is limited; this is a vocoder-free baseline.
+
+        Args:
+            tokens: Integer tokens of shape ``(num_frames, n_codebooks)``.
+            n_iter: Griffin-Lim iterations.
+            seed: Seed for the Griffin-Lim phase initialisation.
+
+        Returns:
+            Synthesised waveform.
+        """
+        features = self.decode(tokens)
+        # invert the whisper-style scaling, then the log and the mel projection
+        log_mel = features * 4.0 - 4.0
+        mel = np.power(10.0, log_mel)
+        fb = mel_filterbank(self.n_mels, self.frame_length, self.sample_rate)
+        magnitude = np.maximum(mel @ np.linalg.pinv(fb), 0.0)
+        return griffin_lim(
+            magnitude,
+            hop_length=self.hop_length,
+            window="hann",
+            n_iter=n_iter,
+            seed=seed,
+        )
