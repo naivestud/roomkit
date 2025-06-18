@@ -114,7 +114,7 @@ class CodecFrontend:
         log_mel = features * 4.0 - 4.0
         mel = np.power(10.0, log_mel)
         fb = mel_filterbank(self.n_mels, self.frame_length, self.sample_rate)
-        magnitude = np.maximum(mel @ np.linalg.pinv(fb), 0.0)
+        magnitude = np.maximum(mel @ np.linalg.pinv(fb).T, 0.0)
         return griffin_lim(
             magnitude,
             hop_length=self.hop_length,
