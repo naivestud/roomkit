@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import torch
 from torch import nn
+from torch.nn import functional as functional
 
 from roomkit.neural.config import EncoderConfig
 from roomkit.neural.mel import log_mel_spectrogram
@@ -46,8 +47,8 @@ class WhisperStyleEncoder(nn.Module):
             Embeddings of shape ``(batch, frames // 2, d_model)``.
         """
         mel = log_mel_spectrogram(waveform, self.config)  # (B, T, n_mels)
-        x = torch.gelu(self.conv1(mel.transpose(1, 2)))
-        x = torch.gelu(self.conv2(x)).transpose(1, 2)
+        x = functional.gelu(self.conv1(mel.transpose(1, 2)))
+        x = functional.gelu(self.conv2(x)).transpose(1, 2)
         frames = x.shape[1]
         if frames > self.config.max_frames:
             raise ValueError(
