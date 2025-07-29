@@ -34,7 +34,7 @@ class DiarizationPipeline:
         hop_length: int = 160,
         window_frames: int = 25,
         window_hop: int = 10,
-        threshold: float = 0.35,
+        threshold: float = 0.06,
         min_segment: int = 3,
     ) -> None:
         self.sample_rate = sample_rate
