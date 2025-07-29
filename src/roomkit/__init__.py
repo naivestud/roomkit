@@ -2,7 +2,8 @@
 
 from roomkit.audio.io import load_audio, save_audio
 from roomkit.denoise import denoise
+from roomkit.diarization import diarize
 
 __version__ = "0.2.0"
 
-__all__ = ["denoise", "load_audio", "save_audio", "__version__"]
+__all__ = ["denoise", "diarize", "load_audio", "save_audio", "__version__"]
