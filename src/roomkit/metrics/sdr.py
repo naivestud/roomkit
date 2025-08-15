@@ -20,8 +20,9 @@ def _validate_pair(reference: np.ndarray, estimate: np.ndarray) -> tuple[np.ndar
 def sdr(reference: np.ndarray, estimate: np.ndarray) -> float:
     """Signal-to-distortion ratio in dB.
 
-    The estimate is projected onto the reference and everything orthogonal
-    counts as distortion; no compensation for scaling or delay.
+    The estimate is projected onto the reference; the projection counts as
+    target energy and everything orthogonal counts as distortion, so a pure
+    gain error is not penalised. No compensation for delay.
 
     Args:
         reference: Clean target signal.
@@ -36,10 +37,11 @@ def sdr(reference: np.ndarray, estimate: np.ndarray) -> float:
         raise ValueError("reference must have non-zero energy")
     projection = float(np.dot(estimate, reference)) / reference_energy * reference
     distortion = estimate - projection
+    projection_energy = float(np.dot(projection, projection))
     distortion_energy = float(np.dot(distortion, distortion))
     if distortion_energy == 0:
         return float("inf")
-    return float(10.0 * np.log10(reference_energy / distortion_energy))
+    return float(10.0 * np.log10(projection_energy / distortion_energy))
 
 
 def si_sdr(reference: np.ndarray, estimate: np.ndarray) -> float:
