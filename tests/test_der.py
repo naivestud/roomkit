@@ -19,8 +19,10 @@ def test_permuted_labels_still_zero():
 
 
 def test_missed_speech_counts():
+    # single reference speaker so only miss is scored, not confusion
+    ref = [Segment(0.0, 2.0, "alice")]
     hyp = [Segment(0.0, 1.5, "alice")]
-    der = diarization_error_rate(_ref(), hyp, duration=2.0, collar=0.0)
+    der = diarization_error_rate(ref, hyp, duration=2.0, collar=0.0)
     assert der == pytest.approx(0.25, abs=0.02)
 
 
