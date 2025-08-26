@@ -4,7 +4,23 @@ from __future__ import annotations
 
 import argparse
 
+import numpy as np
+
 from roomkit import __version__
+from roomkit.audio.io import load_audio, save_audio
+from roomkit.denoise import denoise
+
+
+def _cmd_denoise(args: argparse.Namespace) -> int:
+    samples, rate = load_audio(args.input)
+    enhanced = denoise(
+        np.asarray(samples, dtype=np.float64),
+        method=args.method,
+        noise_frames=args.noise_frames,
+    )
+    save_audio(args.output, enhanced, rate)
+    print(f"wrote {args.output}")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -16,12 +32,32 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
+    subparsers = parser.add_subparsers(dest="command")
+
+    denoise_parser = subparsers.add_parser(
+        "denoise", help="remove stationary noise from a recording"
+    )
+    denoise_parser.add_argument("input", help="noisy input wav file")
+    denoise_parser.add_argument("output", help="enhanced output wav file")
+    denoise_parser.add_argument(
+        "--method", choices=("wiener", "spectral"), default="wiener"
+    )
+    denoise_parser.add_argument(
+        "--noise-frames",
+        type=int,
+        default=10,
+        help="leading frames treated as noise only",
+    )
+    denoise_parser.set_defaults(func=_cmd_denoise)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point; returns a process exit code."""
     parser = build_parser()
-    parser.parse_args(argv)
-    parser.print_help()
-    return 0
+    args = parser.parse_args(argv)
+    func = getattr(args, "func", None)
+    if func is None:
+        parser.print_help()
+        return 2
+    return func(args)
