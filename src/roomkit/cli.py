@@ -9,6 +9,7 @@ import numpy as np
 from roomkit import __version__
 from roomkit.audio.io import load_audio, save_audio
 from roomkit.denoise import denoise
+from roomkit.dereverb import dereverb
 
 
 def _cmd_denoise(args: argparse.Namespace) -> int:
@@ -17,6 +18,19 @@ def _cmd_denoise(args: argparse.Namespace) -> int:
         np.asarray(samples, dtype=np.float64),
         method=args.method,
         noise_frames=args.noise_frames,
+    )
+    save_audio(args.output, enhanced, rate)
+    print(f"wrote {args.output}")
+    return 0
+
+
+def _cmd_dereverb(args: argparse.Namespace) -> int:
+    samples, rate = load_audio(args.input)
+    enhanced = dereverb(
+        np.asarray(samples, dtype=np.float64),
+        taps=args.taps,
+        delay=args.delay,
+        iterations=args.iterations,
     )
     save_audio(args.output, enhanced, rate)
     print(f"wrote {args.output}")
@@ -49,6 +63,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="leading frames treated as noise only",
     )
     denoise_parser.set_defaults(func=_cmd_denoise)
+
+    dereverb_parser = subparsers.add_parser(
+        "dereverb", help="shorten the reverberant tail with WPE"
+    )
+    dereverb_parser.add_argument("input", help="reverberant input wav file")
+    dereverb_parser.add_argument("output", help="dereverberated output wav file")
+    dereverb_parser.add_argument("--taps", type=int, default=8)
+    dereverb_parser.add_argument("--delay", type=int, default=3)
+    dereverb_parser.add_argument("--iterations", type=int, default=3)
+    dereverb_parser.set_defaults(func=_cmd_dereverb)
     return parser
 
 
