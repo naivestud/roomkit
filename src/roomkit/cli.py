@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 
 import numpy as np
 
@@ -10,6 +11,8 @@ from roomkit import __version__
 from roomkit.audio.io import load_audio, save_audio
 from roomkit.denoise import denoise
 from roomkit.dereverb import dereverb
+from roomkit.types import Segment
+from roomkit.vad import detect_voice
 
 
 def _cmd_denoise(args: argparse.Namespace) -> int:
@@ -34,6 +37,30 @@ def _cmd_dereverb(args: argparse.Namespace) -> int:
     )
     save_audio(args.output, enhanced, rate)
     print(f"wrote {args.output}")
+    return 0
+
+
+def _segments_payload(segments: list[Segment]) -> list[dict[str, float | str]]:
+    return [
+        {"start": segment.start, "end": segment.end, "label": segment.label}
+        for segment in segments
+    ]
+
+
+def _cmd_vad(args: argparse.Namespace) -> int:
+    samples, rate = load_audio(args.input)
+    segments = detect_voice(
+        np.asarray(samples, dtype=np.float64),
+        sample_rate=rate,
+        threshold_db=args.threshold_db,
+    )
+    payload = json.dumps(_segments_payload(segments), indent=2)
+    if args.output:
+        with open(args.output, "w") as handle:
+            handle.write(payload + "\n")
+        print(f"wrote {args.output}")
+    else:
+        print(payload)
     return 0
 
 
@@ -73,6 +100,16 @@ def build_parser() -> argparse.ArgumentParser:
     dereverb_parser.add_argument("--delay", type=int, default=3)
     dereverb_parser.add_argument("--iterations", type=int, default=3)
     dereverb_parser.set_defaults(func=_cmd_dereverb)
+
+    vad_parser = subparsers.add_parser(
+        "vad", help="detect voice activity and print segments as JSON"
+    )
+    vad_parser.add_argument("input", help="input wav file")
+    vad_parser.add_argument(
+        "--output", help="optional file for the JSON segments (default: stdout)"
+    )
+    vad_parser.add_argument("--threshold-db", type=float, default=6.0)
+    vad_parser.set_defaults(func=_cmd_vad)
     return parser
 
 
