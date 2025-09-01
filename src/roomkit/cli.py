@@ -11,6 +11,7 @@ from roomkit import __version__
 from roomkit.audio.io import load_audio, save_audio
 from roomkit.denoise import denoise
 from roomkit.dereverb import dereverb
+from roomkit.diarization import diarize
 from roomkit.types import Segment
 from roomkit.vad import detect_voice
 
@@ -53,6 +54,23 @@ def _cmd_vad(args: argparse.Namespace) -> int:
         np.asarray(samples, dtype=np.float64),
         sample_rate=rate,
         threshold_db=args.threshold_db,
+    )
+    payload = json.dumps(_segments_payload(segments), indent=2)
+    if args.output:
+        with open(args.output, "w") as handle:
+            handle.write(payload + "\n")
+        print(f"wrote {args.output}")
+    else:
+        print(payload)
+    return 0
+
+
+def _cmd_diarize(args: argparse.Namespace) -> int:
+    samples, rate = load_audio(args.input)
+    segments = diarize(
+        np.asarray(samples, dtype=np.float64),
+        num_speakers=args.num_speakers,
+        sample_rate=rate,
     )
     payload = json.dumps(_segments_payload(segments), indent=2)
     if args.output:
@@ -110,6 +128,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     vad_parser.add_argument("--threshold-db", type=float, default=6.0)
     vad_parser.set_defaults(func=_cmd_vad)
+
+    diarize_parser = subparsers.add_parser(
+        "diarize", help="answer who spoke when; segments as JSON"
+    )
+    diarize_parser.add_argument("input", help="input wav file")
+    diarize_parser.add_argument(
+        "--output", help="optional file for the JSON segments (default: stdout)"
+    )
+    diarize_parser.add_argument(
+        "--num-speakers", type=int, default=None, help="number of speakers if known"
+    )
+    diarize_parser.set_defaults(func=_cmd_diarize)
     return parser
 
 
