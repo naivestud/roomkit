@@ -9,9 +9,11 @@ import numpy as np
 
 from roomkit import __version__
 from roomkit.audio.io import load_audio, save_audio
+from roomkit.codec.frontend import CodecFrontend
 from roomkit.denoise import denoise
 from roomkit.dereverb import dereverb
 from roomkit.diarization import diarize
+from roomkit.room.rt60 import estimate_rt60
 from roomkit.types import Segment
 from roomkit.vad import detect_voice
 
@@ -82,6 +84,47 @@ def _cmd_diarize(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_rt60(args: argparse.Namespace) -> int:
+    samples, rate = load_audio(args.input)
+    rt60 = estimate_rt60(np.asarray(samples, dtype=np.float64), rate)
+    print(f"{rt60:.3f}")
+    return 0
+
+
+def _cmd_codec_encode(args: argparse.Namespace) -> int:
+    samples, rate = load_audio(args.input)
+    frontend = CodecFrontend(
+        n_codebooks=args.codebooks, codebook_size=args.codebook_size, sample_rate=rate
+    )
+    audio = np.asarray(samples, dtype=np.float64)
+    frontend.fit(audio)
+    tokens = frontend.encode(audio)
+    assert frontend._codebooks is not None  # noqa: SLF001
+    np.savez(
+        args.output,
+        tokens=tokens,
+        codebooks=np.stack(frontend._codebooks),  # noqa: SLF001
+        sample_rate=np.int64(rate),
+    )
+    print(f"wrote {args.output}")
+    return 0
+
+
+def _cmd_codec_decode(args: argparse.Namespace) -> int:
+    bundle = np.load(args.input)
+    codebooks = list(bundle["codebooks"])
+    frontend = CodecFrontend(
+        n_codebooks=len(codebooks),
+        codebook_size=codebooks[0].shape[0],
+        sample_rate=int(bundle["sample_rate"]),
+    )
+    frontend._codebooks = codebooks  # noqa: SLF001
+    waveform = frontend.synthesize(bundle["tokens"], n_iter=args.iterations)
+    save_audio(args.output, waveform, frontend.sample_rate)
+    print(f"wrote {args.output}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the argument parser with all subcommands."""
     parser = argparse.ArgumentParser(
@@ -140,6 +183,26 @@ def build_parser() -> argparse.ArgumentParser:
         "--num-speakers", type=int, default=None, help="number of speakers if known"
     )
     diarize_parser.set_defaults(func=_cmd_diarize)
+
+    rt60_parser = subparsers.add_parser(
+        "rt60", help="estimate RT60 from a measured impulse response"
+    )
+    rt60_parser.add_argument("input", help="impulse response wav file")
+    rt60_parser.set_defaults(func=_cmd_rt60)
+
+    codec_parser = subparsers.add_parser("codec", help="discrete token frontend")
+    codec_sub = codec_parser.add_subparsers(dest="codec_command")
+    encode_parser = codec_sub.add_parser("encode", help="fit codebooks and encode")
+    encode_parser.add_argument("input", help="input wav file")
+    encode_parser.add_argument("output", help="token bundle (.npz)")
+    encode_parser.add_argument("--codebooks", type=int, default=4)
+    encode_parser.add_argument("--codebook-size", type=int, default=32)
+    encode_parser.set_defaults(func=_cmd_codec_encode)
+    decode_parser = codec_sub.add_parser("decode", help="resynthesize from tokens")
+    decode_parser.add_argument("input", help="token bundle (.npz)")
+    decode_parser.add_argument("output", help="output wav file")
+    decode_parser.add_argument("--iterations", type=int, default=32)
+    decode_parser.set_defaults(func=_cmd_codec_decode)
     return parser
 
 
