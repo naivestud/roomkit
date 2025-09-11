@@ -43,3 +43,15 @@ def test_invalid_parameters():
         wpe(spectrum, taps=0)
     with pytest.raises(ValueError):
         wpe(spectrum, iterations=0)
+
+
+def test_active_region_stays_intelligible():
+    # WPE must suppress the tail without destroying the source itself: the
+    # correlation between input and output over the active region stays high
+    reverberant, _ = _reverb_signal(seed=4)
+    enhanced = dereverb(reverberant, taps=10, delay=3, iterations=3)
+    active = slice(1600, 14000)  # inside the noise burst, past STFT edges
+    x = reverberant[active]
+    y = enhanced[active]
+    correlation = np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
+    assert correlation > 0.8
