@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from roomkit.room.rir import SPEED_OF_SOUND, ShoeboxRoom, simulate_rir
+from roomkit.acoustics.rir import SPEED_OF_SOUND, ShoeboxRoom, simulate_rir
 
 
 def _room():

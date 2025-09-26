@@ -1,6 +1,6 @@
 import pytest
 
-from roomkit.room.sabine import absorption_from_rt60, eyring_rt60, sabine_rt60
+from roomkit.acoustics.sabine import absorption_from_rt60, eyring_rt60, sabine_rt60
 
 
 def test_sabine_known_value():
