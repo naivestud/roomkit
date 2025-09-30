@@ -9,12 +9,12 @@ import sys
 import numpy as np
 
 from roomkit import __version__
+from roomkit.acoustics.rt60 import estimate_rt60
 from roomkit.audio.io import load_audio, save_audio
 from roomkit.codec.frontend import CodecFrontend
 from roomkit.denoise import denoise
 from roomkit.dereverb import dereverb
 from roomkit.diarization import diarize
-from roomkit.acoustics.rt60 import estimate_rt60
 from roomkit.types import Segment
 from roomkit.vad import detect_voice
 
