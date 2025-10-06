@@ -48,5 +48,9 @@ def detect_voice(
     )
     smoothed = hangover(decisions, hangover_frames=hangover_frames)
     return decisions_to_segments(
-        smoothed, sample_rate, hop_length=hop_length, min_duration=min_duration
+        smoothed,
+        sample_rate,
+        hop_length=hop_length,
+        frame_length=frame_length,
+        min_duration=min_duration,
     )
