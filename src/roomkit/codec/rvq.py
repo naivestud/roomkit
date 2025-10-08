@@ -4,13 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from roomkit.codec.kmeans import kmeans
-
-
-def _nearest_entry(data: np.ndarray, codebook: np.ndarray) -> np.ndarray:
-    """Index of the nearest codebook entry for each row of ``data``."""
-    scores = 2.0 * data @ codebook.T - np.sum(codebook**2, axis=1)[None, :]
-    return np.argmax(scores, axis=1)
+from roomkit.codec.kmeans import _nearest, kmeans
 
 
 def fit_rvq(
@@ -59,7 +53,7 @@ def rvq_encode(data: np.ndarray, codebooks: list[np.ndarray]) -> np.ndarray:
     residual = data.copy()
     tokens = np.empty((data.shape[0], len(codebooks)), dtype=np.int32)
     for stage, codebook in enumerate(codebooks):
-        indices = _nearest_entry(residual, codebook)
+        indices = _nearest(residual, codebook)
         tokens[:, stage] = indices
         residual = residual - codebook[indices]
     return tokens
