@@ -61,4 +61,9 @@ def kmeans(
             members = data[assignments == cluster]
             if members.shape[0] > 0:
                 codebook[cluster] = members.mean(axis=0)
+            else:
+                # empty cluster: respawn at the point farthest from its
+                # assigned centroid so no codebook entry goes to waste
+                squared = np.sum((data - codebook[assignments]) ** 2, axis=1)
+                codebook[cluster] = data[int(np.argmax(squared))]
     return codebook, assignments
