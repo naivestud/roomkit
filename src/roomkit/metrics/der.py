@@ -59,8 +59,10 @@ def diarization_error_rate(
         collar_frames = int(np.round(collar / _FRAME))
         boundaries = np.flatnonzero(np.diff(ref) != 0)
         for boundary in boundaries:
+            # symmetric no-score window of `collar` on each side of the
+            # boundary frame itself
             lo = max(0, boundary - collar_frames)
-            hi = min(ref.shape[0], boundary + collar_frames)
+            hi = min(ref.shape[0], boundary + collar_frames + 1)
             scored[lo:hi] = False
 
     ref_active = ref != -1
