@@ -38,6 +38,14 @@ def test_collar_ignores_boundary_errors():
     assert diarization_error_rate(_ref(), hyp, duration=2.0, collar=0.25) == pytest.approx(0.0)
 
 
+def test_collar_is_symmetric():
+    # confusion lasts exactly to collar past the reference boundary at 1.0 s;
+    # a symmetric collar must cover the frame at +collar as well
+    hyp = [Segment(0.0, 1.26, "alice"), Segment(1.26, 2.0, "bob")]
+    assert diarization_error_rate(_ref(), hyp, duration=2.0, collar=0.24) > 0
+    assert diarization_error_rate(_ref(), hyp, duration=2.0, collar=0.25) == pytest.approx(0.0)
+
+
 def test_invalid_duration():
     with pytest.raises(ValueError):
         diarization_error_rate(_ref(), _ref(), duration=0.0)
