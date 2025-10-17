@@ -57,7 +57,9 @@ def diarization_error_rate(
     scored = np.ones(ref.shape[0], dtype=bool)
     if collar > 0:
         collar_frames = int(np.round(collar / _FRAME))
-        boundaries = np.flatnonzero(np.diff(ref) != 0)
+        # np.diff flags the frame before each transition; +1 moves the
+        # boundary to the first frame of the new label
+        boundaries = np.flatnonzero(np.diff(ref) != 0) + 1
         for boundary in boundaries:
             # symmetric no-score window of `collar` on each side of the
             # boundary frame itself
