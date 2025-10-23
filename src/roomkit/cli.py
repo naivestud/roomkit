@@ -100,11 +100,11 @@ def _cmd_codec_encode(args: argparse.Namespace) -> int:
     audio = np.asarray(samples, dtype=np.float64)
     frontend.fit(audio)
     tokens = frontend.encode(audio)
-    assert frontend._codebooks is not None  # noqa: SLF001
+    assert frontend._codebooks is not None
     np.savez(
         args.output,
         tokens=tokens,
-        codebooks=np.stack(frontend._codebooks),  # noqa: SLF001
+        codebooks=np.stack(frontend._codebooks),
         sample_rate=np.int64(rate),
     )
     print(f"wrote {args.output}")
@@ -119,7 +119,7 @@ def _cmd_codec_decode(args: argparse.Namespace) -> int:
         codebook_size=codebooks[0].shape[0],
         sample_rate=int(bundle["sample_rate"]),
     )
-    frontend._codebooks = codebooks  # noqa: SLF001
+    frontend._codebooks = codebooks
     waveform = frontend.synthesize(bundle["tokens"], n_iter=args.iterations)
     save_audio(args.output, waveform, frontend.sample_rate)
     print(f"wrote {args.output}")
