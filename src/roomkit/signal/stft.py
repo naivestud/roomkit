@@ -52,8 +52,11 @@ def istft(
         length: If given, trim or zero-pad the output to this many samples.
 
     Returns:
-        Reconstructed time-domain signal.
+        Reconstructed time-domain signal (float64).
     """
+    frames = np.asarray(frames, dtype=np.complex128)
+    if frames.ndim != 2:
+        raise ValueError(f"expected a 2-D spectrogram, got shape {frames.shape}")
     n_fft = (frames.shape[-1] - 1) * 2
     win = get_window(window, n_fft)
     time_frames = np.fft.irfft(frames, n=n_fft, axis=-1)
@@ -61,4 +64,4 @@ def istft(
     if length is not None:
         pad = max(length - out.shape[0], 0)
         out = out[:length] if pad == 0 else np.pad(out, (0, pad))
-    return out
+    return out.astype(np.float64, copy=False)
