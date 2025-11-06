@@ -71,6 +71,26 @@ for s in segments:
     print(s.label, f"{s.start:.2f}–{s.end:.2f}s")
 ```
 
+Chain stages with the enhancement pipeline:
+
+```python
+from roomkit.pipeline import EnhancementPipeline
+
+pipeline = EnhancementPipeline(do_denoise=True, do_dereverb=True)
+enhanced = pipeline(noisy)
+```
+
+Simulate a room and measure it:
+
+```python
+from roomkit.acoustics.rir import ShoeboxRoom, simulate_rir
+from roomkit.acoustics.rt60 import estimate_rt60
+
+room = ShoeboxRoom(dimensions=(5.0, 4.0, 3.0), absorption=0.2)
+rir = simulate_rir(room, source=(1.0, 1.0, 1.5), microphone=(3.5, 2.5, 1.0))
+print(f"RT60 ≈ {estimate_rt60(rir, 16000):.2f} s")
+```
+
 Command line:
 
 ```bash
