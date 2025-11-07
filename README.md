@@ -1,5 +1,9 @@
 # roomkit
 
+[![CI](https://github.com/naivestud/roomkit/actions/workflows/ci.yml/badge.svg)](https://github.com/naivestud/roomkit/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 Speech enhancement and room-acoustics toolkit for Python.
 
 roomkit bundles the pieces needed to clean up and understand room
