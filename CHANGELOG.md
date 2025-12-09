@@ -4,6 +4,33 @@ All notable changes to roomkit are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/); the
 project uses semantic versioning.
 
+## [0.3.0] - 2026-08-08
+
+### Added
+
+- `roomkit.diarization` pipeline and the top-level `roomkit.diarize`
+  entry point.
+- Evaluation suite in `roomkit.metrics`: SI-SDR/SDR, log-spectral
+  distortion, segmental SNR, VAD precision/recall/F1, and diarization
+  error rate with a symmetric no-score collar.
+- `EnhancementPipeline` chaining denoising and WPE.
+- `roomkit` CLI with `denoise`, `dereverb`, `vad`, `diarize`, `rt60` and
+  `codec encode`/`codec decode` subcommands.
+- Self-contained examples under `examples/` and long-form documentation
+  under `docs/`.
+
+### Changed
+
+- Renamed the `room` subpackage to `roomkit.acoustics`.
+- VAD segment end times now include the analysis window of the last active
+  frame.
+
+### Fixed
+
+- SDR uses the projection energy in the numerator (correct SI-SDR gain
+  invariance).
+- `estimate_rt60` falls back to a T20 regression for short decays.
+
 ## [0.2.0] - 2026-08-08
 
 ### Added
