@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from roomkit.room.rt60 import estimate_rt60, schroeder_integration
+from roomkit.acoustics.rt60 import estimate_rt60, schroeder_integration
 
 
 def _synthetic_ir(rt60: float, sample_rate: int = 16000, seed: int = 0) -> np.ndarray:

@@ -14,7 +14,7 @@ from roomkit.codec.frontend import CodecFrontend
 from roomkit.denoise import denoise
 from roomkit.dereverb import dereverb
 from roomkit.diarization import diarize
-from roomkit.room.rt60 import estimate_rt60
+from roomkit.acoustics.rt60 import estimate_rt60
 from roomkit.types import Segment
 from roomkit.vad import detect_voice
 
