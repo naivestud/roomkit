@@ -18,12 +18,12 @@ _NUM_BANDS = 8
 def _band_energies(power: np.ndarray, num_bands: int = _NUM_BANDS) -> np.ndarray:
     """Average power per log-spaced frequency band, in dB."""
     num_bins = power.shape[-1]
-    edges = np.unique(
-        np.logspace(np.log10(1), np.log10(num_bins), num_bands + 1).astype(int)
-    )
+    edges = np.logspace(np.log10(1), np.log10(num_bins), num_bands + 1).astype(int)
+    # force strictly increasing edges so every band survives the int cast
+    for index in range(1, edges.shape[0]):
+        edges[index] = max(edges[index], edges[index - 1] + 1)
     bands = []
     for lo, hi in zip(edges[:-1], edges[1:], strict=True):
-        hi = max(hi, lo + 1)
         bands.append(power[..., lo:hi].mean(axis=-1))
     stacked = np.stack(bands, axis=-1)
     return 10.0 * np.log10(np.maximum(stacked, 1e-12))
@@ -71,7 +71,7 @@ def spectral_embeddings(
     )
     num_frames = frames.shape[0]
     if num_frames < window_frames:
-        return np.empty((0, 2 * _NUM_BANDS + 1)), np.empty(0, dtype=np.int64)
+        return np.empty((0, 2 * (_NUM_BANDS + 1))), np.empty(0, dtype=np.int64)
     starts = np.arange(0, num_frames - window_frames + 1, window_hop)
     embeddings = np.stack(
         [

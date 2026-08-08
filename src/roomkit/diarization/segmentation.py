@@ -15,7 +15,7 @@ def _cosine_steps(embeddings: np.ndarray) -> np.ndarray:
 
 def segment_embeddings(
     embeddings: np.ndarray,
-    threshold: float = 0.35,
+    threshold: float = 0.06,
     min_segment: int = 3,
 ) -> list[tuple[int, int]]:
     """Split an embedding sequence at cosine-distance jumps.
