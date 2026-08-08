@@ -69,3 +69,50 @@ def _estimate_filter(
     )
     correlation += regularization * np.eye(taps * channels)[None, :, :]
     return np.linalg.solve(correlation, cross)
+
+
+def wpe(
+    spectrum: np.ndarray,
+    taps: int = 8,
+    delay: int = 3,
+    iterations: int = 3,
+    psd_context: int = 0,
+    regularization: float = 1e-6,
+) -> np.ndarray:
+    """Run WPE dereverberation on a complex spectrogram.
+
+    Alternates between re-estimating the source power and re-fitting the
+    prediction filter; each round subtracts the predicted reverberant tail.
+
+    Args:
+        spectrum: Complex spectrogram of shape ``(freqs, channels, frames)``.
+        taps: Number of prediction filter taps.
+        delay: Prediction delay (guard interval) in frames; should cover the
+            direct-path window so the direct sound is never predicted away.
+        iterations: Number of EM-style iterations.
+        psd_context: Frame context used to smooth the power estimate.
+        regularization: Diagonal loading for the normal equations.
+
+    Returns:
+        Dereverberated spectrogram with the same shape as ``spectrum``.
+    """
+    if taps <= 0 or delay < 0:
+        raise ValueError("taps must be positive and delay non-negative")
+    if iterations <= 0:
+        raise ValueError("iterations must be positive")
+    enhanced = spectrum
+    for _ in range(iterations):
+        power = _estimate_power(enhanced, psd_context)
+        prediction_filter = _estimate_filter(
+            spectrum, power, taps, delay, regularization
+        )
+        freqs, channels, frames = spectrum.shape
+        padded = np.pad(spectrum, ((0, 0), (0, 0), (delay + taps - 1, 0)))
+        blocks = [
+            padded[:, :, taps - 1 - k : taps - 1 - k + frames] for k in range(taps)
+        ]
+        y_tilde = np.stack(blocks, axis=2).reshape(freqs, taps * channels, frames)
+        enhanced = spectrum - np.einsum(
+            "fkd,fkt->fdt", prediction_filter, y_tilde, optimize="optimal"
+        )
+    return enhanced
