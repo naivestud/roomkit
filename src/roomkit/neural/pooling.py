@@ -29,5 +29,7 @@ def statistics_pool(
     masked = embeddings * mask
     mean = masked.sum(dim=1) / counts
     second = (masked**2).sum(dim=1) / counts
-    std = torch.sqrt((second - mean**2).clamp(min=0.0) + 1e-8)
+    # unbiased variance to match torch.std used in the unmasked branch
+    unbiased = counts / (counts - 1.0).clamp(min=1.0)
+    std = torch.sqrt(((second - mean**2) * unbiased).clamp(min=0.0) + 1e-8)
     return torch.cat([mean, std], dim=-1)
