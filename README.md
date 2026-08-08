@@ -120,7 +120,9 @@ pytest -q          # tests (seeded, no network)
 ruff check .       # lint
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for conventions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for conventions and
+[SECURITY.md](SECURITY.md) for the vulnerability reporting policy. This
+project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
 ## License
 
