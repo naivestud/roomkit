@@ -19,12 +19,14 @@ def test_scale_invariance():
     assert si_sdr(reference, 3.0 * noisy) == pytest.approx(base, abs=1e-9)
 
 
-def test_sdr_not_scale_invariant():
-    rng = np.random.default_rng(2)
-    reference = rng.standard_normal(4000)
-    base = sdr(reference, reference * 0.5)
-    assert np.isfinite(base)
-    assert base < 20  # a 2x gain error is a real distortion here
+def test_sdr_ignores_gain_but_not_offset():
+    t = np.arange(4000) / 16000
+    tone = np.sin(2 * np.pi * 440 * t)
+    reference = tone + 1.0  # DC offset
+    estimate = tone  # same tone without the offset
+    assert np.isfinite(sdr(reference, estimate))
+    # SI-SDR removes the mean of both signals, so the offset disappears
+    assert si_sdr(reference, estimate) == float("inf")
 
 
 def test_more_noise_lower_si_sdr():
