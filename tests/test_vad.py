@@ -47,5 +47,6 @@ def test_segments_from_decisions():
     segments = decisions_to_segments(decisions, sample_rate=16000, hop_length=160)
     assert len(segments) == 2
     assert segments[0].start == pytest.approx(0.01)
-    assert segments[0].end == pytest.approx(0.04)
+    # end includes the analysis window of the last active frame
+    assert segments[0].end == pytest.approx(0.03 + 400 / 16000)
     assert segments[1].label == "speech"
