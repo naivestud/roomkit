@@ -94,3 +94,33 @@ the source are authoritative.
 - `EnhancementPipeline(do_denoise=True, do_dereverb=False, denoise_method="wiener",
   noise_frames=10, taps=8, delay=3, iterations=3, n_fft=400, hop_length=160)` —
   callable on a waveform.
+
+## roomkit.diarization
+
+- `DiarizationPipeline(sample_rate=16000, frame_length=400, hop_length=160,
+  window_frames=25, window_hop=10, threshold=0.06, min_segment=3)` —
+  callable with `(samples, num_speakers=None)`.
+- `diarize(samples, num_speakers=None, sample_rate=16000)` (also top-level).
+- `spectral_embeddings(samples, frame_length=400, hop_length=160,
+  window_frames=25, window_hop=10) -> (embeddings, window_starts)`.
+- `segment_embeddings(embeddings, threshold=0.06, min_segment=3) -> [(start, end), ...]`.
+- `cluster_embeddings(embeddings, num_speakers=None, distance_threshold=0.5) -> labels`.
+
+## roomkit.types
+
+- `Segment(start, end, label="speech")` — frozen dataclass with `.duration`.
+
+## roomkit.neural (optional, requires torch)
+
+- `EncoderConfig(sample_rate=16000, n_fft=400, hop_length=160, n_mels=80,
+  d_model=64, n_heads=4, n_layers=2, max_frames=1500)`.
+- `WhisperStyleEncoder(config=None)` — `forward(waveform)` returns
+  `(batch, frames // 2, d_model)` embeddings.
+- `statistics_pool(embeddings, mask=None) -> (batch, 2 * d_model)`.
+
+## Command line
+
+`roomkit` exposes `denoise`, `dereverb`, `vad`, `diarize`, `rt60` and
+`codec encode`/`codec decode` subcommands; `--help` on each lists options.
+`main(argv=None)` returns a process exit code (0 success, 1 runtime error,
+2 no command given).
