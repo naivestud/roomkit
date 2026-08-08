@@ -39,3 +39,11 @@ def test_encode_before_fit_raises():
         frontend.encode(_audio())
     with pytest.raises(RuntimeError):
         frontend.decode(np.zeros((4, 4), dtype=int))
+
+
+def test_synthesize_produces_finite_waveform():
+    audio = _audio(seed=2, seconds=0.5)
+    frontend = CodecFrontend(n_codebooks=4, codebook_size=16).fit(audio)
+    waveform = frontend.synthesize(frontend.encode(audio), n_iter=8)
+    assert waveform.shape[0] > 0
+    assert np.all(np.isfinite(waveform))
