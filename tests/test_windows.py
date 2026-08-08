@@ -22,7 +22,8 @@ def test_unknown_window_raises():
 
 
 def test_rect_window_is_cola():
-    assert is_cola(get_window("ones", 400), 160)
+    # hop must divide the window length for a rectangular window
+    assert is_cola(get_window("ones", 400), 200)
 
 
 def test_hann_is_cola_at_half_hop_with_loose_tolerance():
