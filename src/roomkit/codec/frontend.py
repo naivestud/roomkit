@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from roomkit.codec.features import codec_features
-from roomkit.codec.rvq import fit_rvq, rvq_encode
+from roomkit.codec.rvq import fit_rvq, rvq_decode, rvq_encode
 
 
 class CodecFrontend:
@@ -77,3 +77,17 @@ class CodecFrontend:
         features = self._features(np.asarray(samples, dtype=np.float64))
         assert self._codebooks is not None  # for type checkers
         return rvq_encode(features, self._codebooks)
+
+    def decode(self, tokens: np.ndarray) -> np.ndarray:
+        """Decode tokens back into analysis features.
+
+        Args:
+            tokens: Integer tokens of shape ``(num_frames, n_codebooks)``.
+
+        Returns:
+            Reconstructed feature frames of shape ``(num_frames, n_mels)``.
+        """
+        if not self.fitted:
+            raise RuntimeError("call fit() before decode()")
+        assert self._codebooks is not None  # for type checkers
+        return rvq_decode(tokens, self._codebooks)
