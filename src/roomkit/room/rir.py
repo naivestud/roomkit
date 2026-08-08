@@ -56,12 +56,14 @@ def simulate_rir(
     microphone: Sequence[float],
     sample_rate: int = 16000,
     max_order: int = 2,
+    air_absorption: float = 0.0,
 ) -> np.ndarray:
     """Simulate a room impulse response with the image source method.
 
     Each image source contributes an impulse delayed by its propagation time
-    and attenuated by spherical spreading and wall reflections. The result is
-    normalised to unit peak.
+    and attenuated by spherical spreading, wall reflections and (optionally)
+    frequency-independent air absorption. The result is normalised to unit
+    peak.
 
     Args:
         room: Shoebox room description.
@@ -69,10 +71,14 @@ def simulate_rir(
         microphone: Microphone position (x, y, z) in meters, inside the room.
         sample_rate: Sampling rate of the returned impulse response.
         max_order: Maximum number of reflections to simulate.
+        air_absorption: Attenuation coefficient in nepers per meter
+            (0 disables air absorption; speech-band values are ~1e-3).
 
     Returns:
         Impulse response as a float64 array.
     """
+    if air_absorption < 0:
+        raise ValueError("air_absorption must be non-negative")
     source_arr = np.asarray(source, dtype=np.float64)
     mic = np.asarray(microphone, dtype=np.float64)
     for point, name in ((source_arr, "source"), (mic, "microphone")):
@@ -94,6 +100,7 @@ def simulate_rir(
         distance = float(np.linalg.norm(image - mic))
         delay = int(round(distance / SPEED_OF_SOUND * sample_rate))
         amplitude = reflection**order / (4.0 * math.pi * distance)
+        amplitude *= math.exp(-air_absorption * distance)
         delays.append(delay)
         amplitudes.append(amplitude)
 
