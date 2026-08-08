@@ -217,6 +217,6 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     try:
         return func(args)
-    except (FileNotFoundError, RuntimeError, OSError) as exc:
+    except (FileNotFoundError, RuntimeError, OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
