@@ -16,7 +16,8 @@ def test_encoder_output_shape():
     waveform = torch.randn(2, 8000)
     with torch.no_grad():
         out = encoder(waveform)
-    mel_frames = 1 + (8000 - encoder.config.n_fft) // encoder.config.hop_length
+    # torch.stft pads by default, giving 1 + num_samples // hop frames
+    mel_frames = 1 + 8000 // encoder.config.hop_length
     assert out.shape == (2, (mel_frames - 1) // 2 + 1, encoder.config.d_model)
 
 
