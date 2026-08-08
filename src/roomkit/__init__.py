@@ -3,6 +3,6 @@
 from roomkit.audio.io import load_audio, save_audio
 from roomkit.denoise import denoise
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = ["denoise", "load_audio", "save_audio", "__version__"]
