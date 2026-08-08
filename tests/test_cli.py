@@ -1,6 +1,7 @@
 import json
 
 import numpy as np
+import pytest
 
 from roomkit.audio.io import save_audio
 from roomkit.cli import main
@@ -40,3 +41,12 @@ def test_vad_writes_json(tmp_path):
 
 def test_help_exits_with_code_two():
     assert main([]) == 2
+
+
+def test_missing_input_returns_error_code(tmp_path):
+    assert main(["denoise", str(tmp_path / "missing.wav"), str(tmp_path / "o.wav")]) == 1
+
+
+def test_version_flag_exits():
+    with pytest.raises(SystemExit):
+        main(["--version"])

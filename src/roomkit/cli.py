@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 
 import numpy as np
 
@@ -214,4 +215,8 @@ def main(argv: list[str] | None = None) -> int:
     if func is None:
         parser.print_help()
         return 2
-    return func(args)
+    try:
+        return func(args)
+    except (FileNotFoundError, RuntimeError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
