@@ -46,3 +46,14 @@ def test_invalid_parameters():
         spectral_subtraction(noisy, noise_power, oversubtraction=0.0)
     with pytest.raises(ValueError):
         spectral_subtraction(noisy, noise_power, spectral_floor=1.5)
+
+
+def test_aggressive_subtraction_floor_avoids_zeroing():
+    # with strong oversubtraction the floor keeps every bin audible instead
+    # of creating spectral holes (the main cause of musical noise)
+    noisy, noise_power = _noisy_stft()
+    enhanced = spectral_subtraction(
+        noisy, noise_power, oversubtraction=2.0, spectral_floor=0.01
+    )
+    gains = np.abs(enhanced) / np.abs(noisy)
+    assert np.all(gains > 0)
