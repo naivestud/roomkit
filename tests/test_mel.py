@@ -39,8 +39,8 @@ def test_log_mel_shape_and_range():
     expected_frames = 1 + (16000 - 400) // 160
     assert feats.shape == (expected_frames, 80)
     # whisper-style rescaling keeps values in roughly [-1, 1]
-    assert feats.max() <= pytest.approx(1.0)
-    assert feats.min() >= -1.0 - 1e-9
+    assert float(feats.max()) <= pytest.approx(1.0)
+    assert float(feats.min()) >= -1.0 - 1e-9
 
 
 def test_log_mel_louder_is_larger():
