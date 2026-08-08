@@ -18,6 +18,14 @@ def test_eyring_close_to_sabine_for_small_absorption():
     assert eyring == pytest.approx(sabine, rel=0.05)
 
 
+def test_eyring_converges_to_sabine_as_absorption_vanishes():
+    # -ln(1 - a) ~ a for small a, so the two formulas must agree in the limit
+    for absorption in (0.001, 0.01):
+        sabine = sabine_rt60(200.0, 220.0, absorption)
+        eyring = eyring_rt60(200.0, 220.0, absorption)
+        assert eyring == pytest.approx(sabine, rel=absorption)
+
+
 def test_eyring_shorter_than_sabine_for_absorptive_rooms():
     assert eyring_rt60(120.0, 150.0, 0.6) < sabine_rt60(120.0, 150.0, 0.6)
 
