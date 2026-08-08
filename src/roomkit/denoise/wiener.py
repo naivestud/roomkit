@@ -9,7 +9,6 @@ def wiener_gain(
     magnitudes: np.ndarray,
     noise_power: np.ndarray,
     gain_floor: float = 0.0,
-    smoothing: float = 0.0,
 ) -> np.ndarray:
     """Posterior Wiener gain from noisy magnitudes and a noise power estimate.
 
@@ -19,7 +18,6 @@ def wiener_gain(
         magnitudes: Noisy magnitude spectrogram ``(num_frames, num_bins)``.
         noise_power: Noise power estimate with the same shape.
         gain_floor: Lower bound for the gain, useful to avoid musical noise.
-        smoothing: Reserved for future temporal smoothing of the gain.
 
     Returns:
         Real gain array in ``[gain_floor, 1]``.
