@@ -56,3 +56,41 @@ the source are authoritative.
 - `absorption_from_rt60(volume, surface_area, rt60)`.
 - `schroeder_integration(impulse_response, noise_floor=None)`.
 - `estimate_rt60(impulse_response, sample_rate, lower_db=-5.0, upper_db=-35.0, noise_floor=None)`.
+
+## roomkit.vad
+
+- `detect_voice(samples, sample_rate=16000, frame_length=400, hop_length=160,
+  threshold_db=6.0, noise_frames=10, hangover_frames=8, min_duration=0.05)
+  -> list[Segment]`.
+- `energy_vad(samples, frame_length=400, hop_length=160, threshold_db=6.0, noise_frames=10)`.
+- `frame_energy_db(samples, frame_length=400, hop_length=160)`.
+- `hangover(decisions, hangover_frames=5)`.
+- `decisions_to_segments(decisions, sample_rate, hop_length=160, frame_length=400,
+  min_duration=0.0, label="speech")`.
+
+## roomkit.codec
+
+- `CodecFrontend(n_codebooks=4, codebook_size=32, sample_rate=16000,
+  frame_length=400, hop_length=160, n_mels=40)` with `fit(samples)`,
+  `encode(samples) -> tokens`, `decode(tokens) -> features`,
+  `synthesize(tokens, n_iter=32, seed=0) -> waveform`, and a `fitted`
+  property.
+- `codec_features(samples, sample_rate=16000, frame_length=400, hop_length=160, n_mels=40)`.
+- `kmeans(data, num_clusters, iterations=25, seed=0) -> (codebook, assignments)`.
+- `fit_rvq(data, n_codebooks, codebook_size, iterations=25, seed=0) -> codebooks`.
+- `rvq_encode(data, codebooks) -> tokens`, `rvq_decode(tokens, codebooks) -> vectors`.
+
+## roomkit.metrics
+
+- `sdr(reference, estimate)`, `si_sdr(reference, estimate)` — dB.
+- `log_spectral_distortion(reference, estimate, n_fft=400, hop_length=160)` — dB.
+- `segmental_snr(reference, estimate, frame_length=400, hop_length=160,
+  min_snr_db=-10.0, max_snr_db=35.0)` — dB.
+- `vad_frame_metrics(reference, estimate) -> {"precision", "recall", "f1", "accuracy"}`.
+- `diarization_error_rate(reference, estimate, duration, collar=0.25)` — fraction.
+
+## roomkit.pipeline
+
+- `EnhancementPipeline(do_denoise=True, do_dereverb=False, denoise_method="wiener",
+  noise_frames=10, taps=8, delay=3, iterations=3, n_fft=400, hop_length=160)` —
+  callable on a waveform.
