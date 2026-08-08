@@ -4,6 +4,12 @@ WPE models the reverberant tail of each frequency bin as a multichannel
 linear prediction of delayed past frames and subtracts the prediction. See
 Yoshioka et al., "Generalization of multi-channel linear prediction methods
 for blind MIMO impulse response shortening", 2012.
+
+Notes
+-----
+The ``delay`` parameter is a guard interval: it keeps the direct sound and
+early reflections out of the prediction so they are never cancelled.
+# TODO: document recommended taps/delay ranges per hop size
 """
 
 from __future__ import annotations
