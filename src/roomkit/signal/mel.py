@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from roomkit.signal.stft import stft
+
 
 def hz_to_mel(freqs: np.ndarray | float) -> np.ndarray:
     """Convert frequencies in Hz to the mel scale (O'Shaughnessy formula)."""
@@ -63,3 +65,37 @@ def mel_filterbank(
         if bandwidth > 0:
             fb[m] *= 2.0 / bandwidth
     return fb
+
+
+def log_mel_spectrogram(
+    samples: np.ndarray,
+    sample_rate: int = 16000,
+    n_mels: int = 80,
+    n_fft: int = 400,
+    hop_length: int = 160,
+    window: str = "hann",
+) -> np.ndarray:
+    """Compute a log-mel spectrogram following the whisper scaling recipe.
+
+    The magnitude spectrum is mapped through a mel filterbank, converted with
+    ``log10`` (clamped at ``1e-10`` and to within 8 decades of the maximum),
+    then rescaled to roughly ``[-1, 1]`` with ``(x + 4) / 4``.
+
+    Args:
+        samples: One-dimensional input signal sampled at ``sample_rate``.
+        sample_rate: Sampling rate in Hz.
+        n_mels: Number of mel bands.
+        n_fft: FFT size.
+        hop_length: Hop between frames in samples.
+        window: Analysis window name.
+
+    Returns:
+        Array of shape ``(num_frames, n_mels)``.
+    """
+    spec = stft(samples, n_fft=n_fft, hop_length=hop_length, window=window)
+    magnitudes = np.abs(spec)
+    fb = mel_filterbank(n_mels, n_fft, sample_rate)
+    mel = magnitudes @ fb.T
+    log_spec = np.log10(np.maximum(mel, 1e-10))
+    log_spec = np.maximum(log_spec, log_spec.max() - 8.0)
+    return (log_spec + 4.0) / 4.0

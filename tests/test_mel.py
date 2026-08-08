@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from roomkit.signal.mel import hz_to_mel, mel_filterbank, mel_to_hz
+from roomkit.signal.mel import hz_to_mel, log_mel_spectrogram, mel_filterbank, mel_to_hz
 
 
 def test_mel_hz_roundtrip():
@@ -30,3 +30,22 @@ def test_filterbank_peaks_ordered():
 def test_invalid_range_raises():
     with pytest.raises(ValueError):
         mel_filterbank(n_mels=10, n_fft=400, sample_rate=16000, f_min=9000.0)
+
+
+def test_log_mel_shape_and_range():
+    rng = np.random.default_rng(0)
+    samples = rng.standard_normal(16000)
+    feats = log_mel_spectrogram(samples, sample_rate=16000, n_mels=80)
+    expected_frames = 1 + (16000 - 400) // 160
+    assert feats.shape == (expected_frames, 80)
+    # whisper-style rescaling keeps values in roughly [-1, 1]
+    assert feats.max() <= pytest.approx(1.0)
+    assert feats.min() >= -1.0 - 1e-9
+
+
+def test_log_mel_louder_is_larger():
+    t = np.arange(16000) / 16000
+    tone = np.sin(2 * np.pi * 440.0 * t)
+    quiet = log_mel_spectrogram(0.01 * tone)
+    loud = log_mel_spectrogram(tone)
+    assert loud.mean() > quiet.mean()
