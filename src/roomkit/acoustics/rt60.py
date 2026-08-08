@@ -48,7 +48,9 @@ def estimate_rt60(
     """Estimate RT60 from a measured impulse response.
 
     Fits a line to the Schroeder curve between ``lower_db`` and ``upper_db``
-    (a T30-style regression) and extrapolates to the -60 dB crossing.
+    (a T30-style regression) and extrapolates to the -60 dB crossing. When
+    the response decays too little to cover that band, the regression falls
+    back to the upper half of the band (a T20-style extrapolation).
 
     Args:
         impulse_response: One-dimensional impulse response.
@@ -68,6 +70,10 @@ def estimate_rt60(
     curve = schroeder_integration(impulse_response, noise_floor=noise_floor)
     times = np.arange(curve.shape[0]) / sample_rate
     window = (curve <= lower_db) & (curve >= upper_db)
+    if window.sum() < 2:
+        # short decays never reach the T30 band; fall back to T20
+        upper_db = (lower_db + upper_db) / 2.0
+        window = (curve <= lower_db) & (curve >= upper_db)
     if window.sum() < 2:
         raise ValueError("decay range too short for rt60 estimation")
     slope, intercept = np.polyfit(times[window], curve[window], 1)
