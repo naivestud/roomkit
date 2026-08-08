@@ -42,7 +42,12 @@ def denoise(
         raise ValueError(f"unknown method {method!r}; choose from {_METHODS}")
     samples = np.asarray(samples, dtype=np.float64)
     spec = stft(samples, n_fft=n_fft, hop_length=hop_length)
-    noise_power = estimate_noise(np.abs(spec), initial_frames=noise_frames)
+    # lead-in frames are noise-only by assumption, so their average power is
+    # an unbiased noise floor; the minimum-statistics tracker in
+    # estimate_noise is better suited to signals with speech pauses
+    power = np.abs(spec) ** 2
+    lead_in = power[: max(noise_frames, 1)].mean(axis=0)
+    noise_power = np.broadcast_to(lead_in, power.shape)
     if method == "wiener":
         gain = wiener_gain(np.abs(spec), noise_power)
         enhanced = spec * gain
