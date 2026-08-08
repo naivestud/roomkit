@@ -1,0 +1,11 @@
+[run]
+source = roomkit
+branch = True
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if TYPE_CHECKING:
+skip_covered = True
+show_missing = True
