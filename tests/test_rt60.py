@@ -36,6 +36,16 @@ def test_empty_response_raises():
         schroeder_integration(np.array([]))
 
 
+def test_short_decay_falls_back_to_t20():
+    # an IR truncated after ~25 dB of decay never reaches the T30 band;
+    # the T20 fallback should still recover the design value
+    sample_rate = 16000
+    response = _synthetic_ir(0.6, sample_rate=sample_rate, seed=7)
+    truncated = response[: int(0.25 * sample_rate)]
+    estimate = estimate_rt60(truncated, sample_rate)
+    assert estimate == pytest.approx(0.6, rel=0.2)
+
+
 def test_regression_window_validation():
     response = _synthetic_ir(0.3)
     with pytest.raises(ValueError):
