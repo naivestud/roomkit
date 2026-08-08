@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 
-_REGISTRY = {
+_REGISTRY: dict[str, Callable[[int], np.ndarray]] = {
     "hann": np.hanning,
     "hamming": np.hamming,
     "blackman": np.blackman,

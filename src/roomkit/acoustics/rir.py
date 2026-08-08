@@ -41,7 +41,7 @@ class ShoeboxRoom:
         return 2 * (length * width + length * height + width * height)
 
 
-def _reflection_order(n: tuple[int, int, int], mirrored: tuple[int, int, int]) -> int:
+def _reflection_order(n: Sequence[int], mirrored: Sequence[int]) -> int:
     """Number of wall reflections for an image source indexed by (n, mirrored).
 
     An image at ``(-1)**p * x0 + 2 n L`` sits ``|2n - p|`` cells away from the
