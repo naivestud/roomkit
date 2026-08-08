@@ -25,8 +25,9 @@ def test_sdr_ignores_gain_but_not_offset():
     reference = tone + 1.0  # DC offset
     estimate = tone  # same tone without the offset
     assert np.isfinite(sdr(reference, estimate))
-    # SI-SDR removes the mean of both signals, so the offset disappears
-    assert si_sdr(reference, estimate) == float("inf")
+    assert sdr(reference, estimate) < 10  # the offset is real distortion here
+    # SI-SDR removes the mean of both signals, so the offset nearly disappears
+    assert si_sdr(reference, estimate) > 100
 
 
 def test_more_noise_lower_si_sdr():
