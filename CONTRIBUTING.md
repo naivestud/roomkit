@@ -42,3 +42,18 @@ ruff check .
 Open an issue with the bug-report template: a minimal reproduction and the
 output of `python -c "import roomkit; print(roomkit.__version__)"` goes a
 long way.
+
+## Releases
+
+Releases are tagged and the `Release` workflow builds the distributions and
+publishes a GitHub release. To cut one (maintainers):
+
+1. Bump `__version__` in `src/roomkit/__init__.py`.
+2. Move the changelog's unreleased notes under a dated version heading in
+   `CHANGELOG.md`.
+3. Run `scripts/release.sh vX.Y.Z` — it tags and pushes the tag; the
+   workflow does the rest.
+
+Publishing to PyPI is opt-in: set the `PYPI_PUBLISH` repository variable to
+`true` once a trusted publisher is configured; until then releases ship as
+GitHub release assets only.
