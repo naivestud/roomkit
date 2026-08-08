@@ -29,3 +29,43 @@ def _estimate_power(spectrum: np.ndarray, context: int = 0) -> np.ndarray:
             [np.convolve(row, kernel, mode="same") / kernel.sum() for row in power]
         )
     return power
+
+
+def _estimate_filter(
+    spectrum: np.ndarray,
+    power: np.ndarray,
+    taps: int,
+    delay: int,
+    regularization: float,
+) -> np.ndarray:
+    """Estimate the prediction filter for each frequency bin.
+
+    Solves the weighted normal equations ``R G = P`` where the regressor is
+    the stack of delayed past frames and the weights are the inverse power of
+    the current source estimate.
+
+    Args:
+        spectrum: Complex spectrogram ``(freqs, channels, frames)``.
+        power: Source power estimate ``(freqs, frames)``.
+        taps: Number of filter taps.
+        delay: Prediction delay (guard interval) in frames.
+        regularization: Diagonal loading added before solving.
+
+    Returns:
+        Filter tensor of shape ``(freqs, taps * channels, channels)``.
+    """
+    freqs, channels, frames = spectrum.shape
+    inv_power = 1.0 / np.maximum(power, 1e-10)
+
+    padded = np.pad(spectrum, ((0, 0), (0, 0), (delay + taps - 1, 0)))
+    blocks = [padded[:, :, taps - 1 - k : taps - 1 - k + frames] for k in range(taps)]
+    y_tilde = np.stack(blocks, axis=2).reshape(freqs, taps * channels, frames)
+
+    correlation = np.einsum(
+        "fkt,ft,flt->fkl", y_tilde.conj(), inv_power, y_tilde, optimize="optimal"
+    )
+    cross = np.einsum(
+        "fkt,ft,fdt->fkd", y_tilde.conj(), inv_power, spectrum, optimize="optimal"
+    )
+    correlation += regularization * np.eye(taps * channels)[None, :, :]
+    return np.linalg.solve(correlation, cross)
