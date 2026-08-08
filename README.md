@@ -17,3 +17,13 @@ diarization, with an evaluation suite and a command line interface.
 - `roomkit.diarization` — speaker diarization (planned)
 
 Work in progress.
+
+## Quickstart: denoising
+
+```python
+import roomkit
+
+noisy, rate = roomkit.load_audio("noisy.wav")
+enhanced = roomkit.denoise(noisy)  # expects a short noise-only lead-in
+roomkit.save_audio("enhanced.wav", enhanced, rate)
+```
