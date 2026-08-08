@@ -24,10 +24,12 @@ def test_overlap_add_no_window():
 
 
 def test_overlap_add_with_window_inverts_weighting():
-    # a single frame weighted by the window should come back unweighted
+    # frames arrive pre-weighted by the analysis window; overlap-add should
+    # undo that weighting via the accumulated window energy
     frame = np.array([1.0, 2.0, 3.0, 4.0])
     window = np.array([0.5, 1.0, 1.0, 0.5])
-    out = overlap_add(frame[None, :] , hop_length=4, window=window)
+    weighted = frame * window
+    out = overlap_add(weighted[None, :], hop_length=4, window=window)
     assert np.allclose(out, frame)
 
 
