@@ -8,8 +8,9 @@ for blind MIMO impulse response shortening", 2012.
 Notes
 -----
 The ``delay`` parameter is a guard interval: it keeps the direct sound and
-early reflections out of the prediction so they are never cancelled.
-# TODO: document recommended taps/delay ranges per hop size
+early reflections out of the prediction so they are never cancelled. With
+the default 10 ms hop, ``delay=3`` guards 30 ms; choose at least as many
+taps as the late tail you want to cancel (8-12 is typical for speech).
 """
 
 from __future__ import annotations
