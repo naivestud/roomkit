@@ -15,6 +15,19 @@ def _nearest(data: np.ndarray, codebook: np.ndarray) -> np.ndarray:
     return np.argmax(scores, axis=1)
 
 
+def _kmeanspp_init(data: np.ndarray, num_clusters: int, rng: np.random.Generator) -> np.ndarray:
+    """Seed centroids with k-means++ so bad random starts are rare."""
+    num_vectors = data.shape[0]
+    centers = [data[rng.integers(num_vectors)]]
+    for _ in range(1, num_clusters):
+        stacked = np.stack(centers)
+        squared = np.min(np.sum((data[:, None, :] - stacked[None, :, :]) ** 2, axis=-1), axis=1)
+        total = squared.sum()
+        probs = squared / total if total > 0 else None
+        centers.append(data[rng.choice(num_vectors, p=probs)])
+    return np.stack(centers)
+
+
 def kmeans(
     data: np.ndarray,
     num_clusters: int,
@@ -40,8 +53,7 @@ def kmeans(
         raise ValueError("num_clusters must be between 1 and the number of vectors")
 
     rng = np.random.default_rng(seed)
-    initial = rng.choice(data.shape[0], size=num_clusters, replace=False)
-    codebook = data[initial].copy()
+    codebook = _kmeanspp_init(data, num_clusters, rng)
     assignments = np.zeros(data.shape[0], dtype=np.int64)
     for _ in range(iterations):
         assignments = _nearest(data, codebook)
