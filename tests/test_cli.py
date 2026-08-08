@@ -50,3 +50,11 @@ def test_missing_input_returns_error_code(tmp_path):
 def test_version_flag_exits():
     with pytest.raises(SystemExit):
         main(["--version"])
+
+
+def test_codec_decode_rejects_plain_wav(tmp_path):
+    # a wav file is not a token bundle; the command must fail cleanly
+    noisy = _write_noisy(tmp_path)
+    out = tmp_path / "resynth.wav"
+    assert main(["codec", "decode", str(noisy), str(out)]) == 1
+    assert not out.exists()
